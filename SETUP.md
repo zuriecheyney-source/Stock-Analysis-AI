@@ -14,7 +14,7 @@ DEEPSEEK_API_KEY=your_deepseek_api_key_here
 ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
 
 # Supabase Configuration
-SUPABASE_URL=your_supabase_url_here
+SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key_here
 
 # Server Configuration
@@ -88,7 +88,7 @@ git push -u origin main
 **后端服务环境变量：**
 - `DEEPSEEK_API_KEY`
 - `ALPHA_VANTAGE_API_KEY`
-- `SUPABASE_URL`
+- `SUPABASE_URL`（填写 Supabase 项目 URL，例如 `https://your-project-ref.supabase.co`，不要带 `/rest/v1`）
 - `SUPABASE_ANON_KEY`
 - `NODE_ENV=production`
 - `PORT=3001`

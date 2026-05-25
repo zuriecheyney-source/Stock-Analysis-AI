@@ -6,8 +6,9 @@ exports.getAnalysisHistory = getAnalysisHistory;
 const supabase_js_1 = require("@supabase/supabase-js");
 // Initialize Supabase client if credentials are available
 function getSupabaseClient() {
-    const supabaseUrl = process.env.SUPABASE_URL;
+    const rawSupabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl = rawSupabaseUrl?.replace(/\/rest\/v1\/?$/, '');
     return supabaseUrl && supabaseAnonKey && supabaseUrl !== 'your_supabase_url_here' && supabaseAnonKey !== 'your_supabase_anon_key_here'
         ? (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey)
         : null;
