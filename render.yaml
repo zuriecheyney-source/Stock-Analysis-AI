@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: stock-analysis-backend
+    rootDir: backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: https://stock-analysis-frontend.onrender.com
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+  - type: static
+    name: stock-analysis-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://stock-analysis-backend.onrender.com/api
+    autoDeploy: true
