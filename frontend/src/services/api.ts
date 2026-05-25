@@ -55,7 +55,8 @@ export const analyzeStock = async (symbol: string, stockData: StockData): Promis
       symbol,
       stockData
     });
-    return (response as unknown as { analysis: AIAnalysis }).analysis;
+    const payload = response as unknown as { analysis?: AIAnalysis } & AIAnalysis;
+    return payload.analysis ?? payload;
   } catch (error: any) {
     console.error('Error analyzing stock:', error);
     throw error;

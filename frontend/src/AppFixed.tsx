@@ -11,12 +11,54 @@ function AppFixed() {
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const safeNumber = (value: unknown, fallback = 0) => {
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  };
+
+  const formatOptionalCurrency = (value: unknown) => {
+    const numberValue = safeNumber(value);
+    if (numberValue <= 0) return '暂无';
+    return `$${numberValue.toLocaleString()}`;
+  };
+
+  const formatOptionalPercent = (value: unknown) => {
+    const numberValue = safeNumber(value);
+    if (numberValue <= 0) return '暂无';
+    return `${numberValue.toFixed(2)}%`;
+  };
+
+  const getFallbackAnalysis = (stock: StockData): AIAnalysis => ({
+    summary: `${stock.symbol} 当前价格为 $${safeNumber(stock.price).toFixed(2)}，日内波动 ${safeNumber(stock.changePercent).toFixed(2)}%。在接口不可用时，这里展示本地生成的分析结果，方便你确认按钮已经正常工作。`,
+    sentiment: safeNumber(stock.changePercent) >= 1 ? 'Bullish' : safeNumber(stock.changePercent) <= -1 ? 'Bearish' : 'Neutral',
+    riskLevel: 'Medium',
+    keyPoints: [
+      `当前价格: $${safeNumber(stock.price).toFixed(2)}`,
+      `涨跌幅: ${safeNumber(stock.changePercent).toFixed(2)}%`,
+      `成交量: ${safeNumber(stock.volume).toLocaleString()}`,
+      `市值: $${safeNumber(stock.marketCap).toLocaleString()}`
+    ],
+    recommendations: [
+      '如果接口不可用，先用本地结果验证交互',
+      '后续再检查后端是否已启动并可访问',
+      '接通 API 后可获得更完整的 AI 分析'
+    ]
+  });
+
+  const isValidAnalysis = (value: unknown): value is AIAnalysis => {
+    return Boolean(
+      value &&
+      typeof value === 'object' &&
+      typeof (value as AIAnalysis).summary === 'string' &&
+      typeof (value as AIAnalysis).sentiment === 'string' &&
+      typeof (value as AIAnalysis).riskLevel === 'string'
+    );
+  };
+
   const handleStockSelect = async (symbol: string) => {
     setLoading(true);
     setError(null);
     try {
       const stockData = await fetchStockData(symbol);
-
       setSelectedStock(stockData);
       setAnalysis(null);
     } catch (err) {
@@ -34,7 +76,7 @@ function AppFixed() {
     setError(null);
     try {
       const result = await analyzeStock(selectedStock.symbol, selectedStock);
-      setAnalysis(result);
+      setAnalysis(isValidAnalysis(result) ? result : getFallbackAnalysis(selectedStock));
     } catch (err) {
       console.error('Analyze error:', err);
       setAnalysis(getFallbackAnalysis(selectedStock));
@@ -44,36 +86,8 @@ function AppFixed() {
     }
   };
 
-  const getFallbackAnalysis = (stock: StockData): AIAnalysis => ({
-    summary: `${stock.symbol} 当前价格为 $${stock.price.toFixed(2)}，日内波动 ${stock.changePercent.toFixed(2)}%。在接口不可用时，这里展示本地生成的分析结果，方便你确认按钮已经正常工作。`,
-    sentiment: stock.changePercent >= 1 ? 'Bullish' : stock.changePercent <= -1 ? 'Bearish' : 'Neutral',
-    riskLevel: 'Medium',
-    keyPoints: [
-      `当前价格: $${stock.price.toFixed(2)}`,
-      `涨跌幅: ${stock.changePercent.toFixed(2)}%`,
-      `成交量: ${stock.volume.toLocaleString()}`,
-      `市值: $${stock.marketCap.toLocaleString()}`
-    ],
-    recommendations: [
-      '如果接口不可用，先用本地结果验证交互',
-      '后续再检查后端是否已启动并可访问',
-      '接通 API 后可获得更完整的 AI 分析'
-    ]
-  });
-
-  const formatOptionalCurrency = (value: number) => {
-    if (!Number.isFinite(value) || value <= 0) return '暂无';
-    return `$${value.toLocaleString()}`;
-  };
-
-  const formatOptionalPercent = (value: number) => {
-    if (!Number.isFinite(value) || value <= 0) return '暂无';
-    return `${value.toFixed(2)}%`;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
@@ -81,19 +95,14 @@ function AppFixed() {
               <TrendingUp className="w-8 h-8 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                AI股票分析面板
-              </h1>
-              <p className="text-gray-600 text-sm">
-                使用人工智能分析股票数据
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900">AI股票分析面板</h1>
+              <p className="text-gray-600 text-sm">使用人工智能分析股票数据</p>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Search Section */}
         <div className="mb-8">
           {error && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
@@ -115,11 +124,10 @@ function AppFixed() {
             />
           </div>
 
-          {/* Popular Stocks */}
           <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700 mb-3">热门股票</h3>
             <div className="flex flex-wrap gap-2">
-              {['AAPL', 'GOOGL', 'MSFT', 'TSLA'].map(symbol => (
+              {['AAPL', 'GOOGL', 'MSFT', 'TSLA'].map((symbol) => (
                 <button
                   key={symbol}
                   onClick={() => handleStockSelect(symbol)}
@@ -133,7 +141,6 @@ function AppFixed() {
           </div>
         </div>
 
-        {/* Stock Card */}
         {selectedStock ? (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
             <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
@@ -142,20 +149,14 @@ function AppFixed() {
 
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {selectedStock.symbol}
-                </h2>
-                <p className="text-gray-600">
-                  {selectedStock.name}
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">{selectedStock.symbol}</h2>
+                <p className="text-gray-600">{selectedStock.name}</p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">
-                  ${selectedStock.price.toFixed(2)}
-                </div>
-                <div className={`flex items-center gap-1 ${selectedStock.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="text-3xl font-bold text-gray-900">${safeNumber(selectedStock.price).toFixed(2)}</div>
+                <div className={`flex items-center gap-1 ${safeNumber(selectedStock.changePercent) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   <span className="font-medium">
-                    {selectedStock.changePercent >= 0 ? '+' : ''}{selectedStock.change.toFixed(2)} ({selectedStock.changePercent >= 0 ? '+' : ''}{selectedStock.changePercent.toFixed(2)}%)
+                    {(safeNumber(selectedStock.changePercent) >= 0 ? '+' : '')}{safeNumber(selectedStock.change).toFixed(2)} ({(safeNumber(selectedStock.changePercent) >= 0 ? '+' : '')}{safeNumber(selectedStock.changePercent).toFixed(2)}%)
                   </span>
                 </div>
               </div>
@@ -178,7 +179,7 @@ function AppFixed() {
                   市盈率
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
-                  {selectedStock.peRatio > 0 ? selectedStock.peRatio.toFixed(2) : '暂无'}
+                  {safeNumber(selectedStock.peRatio) > 0 ? safeNumber(selectedStock.peRatio).toFixed(2) : '暂无'}
                 </div>
               </div>
 
@@ -198,7 +199,7 @@ function AppFixed() {
                   成交量
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
-                  {selectedStock.volume > 0 ? selectedStock.volume.toLocaleString() : '暂无'}
+                  {safeNumber(selectedStock.volume) > 0 ? safeNumber(selectedStock.volume).toLocaleString() : '暂无'}
                 </div>
               </div>
             </div>
@@ -213,21 +214,19 @@ function AppFixed() {
               {analyzing ? 'AI分析中...' : '使用AI分析此股票'}
             </button>
 
-            {analysis && (
+            {analysis ? (
               <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-5">
                 <div className="flex items-center gap-2 text-blue-700 font-semibold mb-3">
                   <Sparkles className="w-5 h-5" />
                   AI分析结果
                 </div>
-                <p className="text-gray-800 mb-3">{analysis.summary}</p>
+                <p className="text-gray-800 mb-3">{analysis.summary || '暂无分析摘要'}</p>
                 <div className="flex flex-wrap gap-2 text-sm">
-                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.sentiment}</span>
-                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.riskLevel}</span>
+                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.sentiment || 'Unknown'}</span>
+                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.riskLevel || 'Unknown'}</span>
                 </div>
               </div>
-            )}
-
-            {!analysis && (
+            ) : (
               <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500">
                 AI分析结果会显示在这里。
               </div>
@@ -236,22 +235,17 @@ function AppFixed() {
         ) : (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
-              搜索股票开始分析
-            </h3>
-            <p className="text-gray-500">
-              输入股票代码或从热门股票中选择
-            </p>
+            <h3 className="text-lg font-medium text-gray-700 mb-2">搜索股票开始分析</h3>
+            <p className="text-gray-500">输入股票代码或从热门股票中选择</p>
           </div>
         )}
 
-        {/* Info Panel */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Brain className="w-5 h-5 text-blue-600" />
             功能说明
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -259,9 +253,7 @@ function AppFixed() {
               </div>
               <div>
                 <h4 className="font-medium text-gray-900">实时数据</h4>
-                <p className="text-sm text-gray-600">
-                  通过Alpha Vantage API获取实时股票数据
-                </p>
+                <p className="text-sm text-gray-600">通过Alpha Vantage API获取实时股票数据</p>
               </div>
             </div>
 
@@ -271,9 +263,7 @@ function AppFixed() {
               </div>
               <div>
                 <h4 className="font-medium text-gray-900">AI分析</h4>
-                <p className="text-sm text-gray-600">
-                  DeepSeek AI分析股票数据，提供投资建议
-                </p>
+                <p className="text-sm text-gray-600">DeepSeek AI分析股票数据，提供投资建议</p>
               </div>
             </div>
 
@@ -283,9 +273,7 @@ function AppFixed() {
               </div>
               <div>
                 <h4 className="font-medium text-gray-900">数据存储</h4>
-                <p className="text-sm text-gray-600">
-                  分析结果自动保存到Supabase数据库
-                </p>
+                <p className="text-sm text-gray-600">分析结果自动保存到Supabase数据库</p>
               </div>
             </div>
           </div>
