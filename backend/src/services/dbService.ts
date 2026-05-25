@@ -168,17 +168,18 @@ function getMockHistory(symbol: string): AnalysisRecord[] {
 
 // SQL for creating the table in Supabase
 export const CREATE_TABLE_SQL = `
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS stock_analyses (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   symbol VARCHAR(10) NOT NULL,
   analysis JSONB NOT NULL,
   stock_data JSONB NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Add indexes for better query performance
-  INDEX idx_symbol (symbol),
-  INDEX idx_created_at (created_at DESC)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_stock_analyses_symbol ON stock_analyses(symbol);
+CREATE INDEX IF NOT EXISTS idx_stock_analyses_created_at ON stock_analyses(created_at DESC);
 
 -- Optional: Add RLS (Row Level Security) policies
 ALTER TABLE stock_analyses ENABLE ROW LEVEL SECURITY;
