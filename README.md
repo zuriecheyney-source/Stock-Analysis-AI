@@ -148,10 +148,10 @@ npm run dev
 
 ### 在线访问
 
-如已部署到 Render，可直接访问：
+已部署到 Render，可直接访问：
 
-- 前端地址: https://stock-analysis-frontend.onrender.com
-- 后端 API: https://stock-analysis-backend.onrender.com/api
+- 前端地址: https://stock-analysis-ai-1.onrender.com
+- 后端 API: https://stock-analysis-ai-s6q7.onrender.com/api
 
 本地开发地址：
 
