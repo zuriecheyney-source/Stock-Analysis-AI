@@ -143,10 +143,6 @@ function AppFixed() {
 
         {selectedStock ? (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-              这是基础行情数据，不是 AI 分析结果。点击下面按钮后，才会生成 AI 分析。
-            </div>
-
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">{selectedStock.symbol}</h2>
