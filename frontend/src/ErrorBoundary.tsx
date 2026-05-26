@@ -7,23 +7,29 @@ type ErrorBoundaryProps = {
 type ErrorBoundaryState = {
   hasError: boolean;
   errorMessage: string;
+  stackTrace: string;
 };
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = {
     hasError: false,
-    errorMessage: ''
+    errorMessage: '',
+    stackTrace: ''
   };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
       hasError: true,
-      errorMessage: error.message || 'Unknown error'
+      errorMessage: error.message || 'Unknown error',
+      stackTrace: error.stack || ''
     };
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('App error boundary caught an error:', error, errorInfo);
+    this.setState({
+      stackTrace: errorInfo.componentStack || error.stack || ''
+    });
   }
 
   render() {
@@ -38,6 +44,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 whitespace-pre-wrap">
               {this.state.errorMessage}
             </div>
+            {this.state.stackTrace && (
+              <pre className="mt-4 max-h-64 overflow-auto rounded-lg bg-gray-900 p-4 text-xs leading-5 text-gray-100 whitespace-pre-wrap">
+                {this.state.stackTrace}
+              </pre>
+            )}
           </div>
         </div>
       );
