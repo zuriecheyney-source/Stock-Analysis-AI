@@ -206,27 +206,32 @@ function AppFixed() {
               disabled={analyzing}
               className="w-full py-4 px-6 bg-blue-600 text-white rounded-xl font-medium text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {analyzing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Brain className="w-6 h-6" />}
-              {analyzing ? 'AI分析中...' : '使用AI分析此股票'}
+              <span className="relative flex h-6 w-6 items-center justify-center">
+                <Brain className={`absolute h-6 w-6 transition-opacity ${analyzing ? 'opacity-0' : 'opacity-100'}`} />
+                <Loader2 className={`absolute h-6 w-6 animate-spin transition-opacity ${analyzing ? 'opacity-100' : 'opacity-0'}`} />
+              </span>
+              <span>{analyzing ? 'AI分析中...' : '使用AI分析此股票'}</span>
             </button>
 
-            {analysis ? (
-              <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-5">
-                <div className="flex items-center gap-2 text-blue-700 font-semibold mb-3">
-                  <Sparkles className="w-5 h-5" />
-                  AI分析结果
-                </div>
-                <p className="text-gray-800 mb-3">{analysis.summary || '暂无分析摘要'}</p>
-                <div className="flex flex-wrap gap-2 text-sm">
-                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.sentiment || 'Unknown'}</span>
-                  <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.riskLevel || 'Unknown'}</span>
-                </div>
+            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-5">
+              <div className="flex items-center gap-2 text-blue-700 font-semibold mb-3">
+                <Sparkles className="w-5 h-5" />
+                AI分析结果
               </div>
-            ) : (
-              <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500">
-                AI分析结果会显示在这里。
-              </div>
-            )}
+              {analysis ? (
+                <>
+                  <p className="text-gray-800 mb-3">{analysis.summary || '暂无分析摘要'}</p>
+                  <div className="flex flex-wrap gap-2 text-sm">
+                    <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.sentiment || 'Unknown'}</span>
+                    <span className="px-3 py-1 rounded-full bg-white text-gray-700 border border-blue-200">{analysis.riskLevel || 'Unknown'}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-lg border border-dashed border-blue-200 bg-white/70 p-4 text-sm text-gray-500">
+                  还没有生成分析结果。
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
